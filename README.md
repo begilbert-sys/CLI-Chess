@@ -1,3 +1,3 @@
-# macOS-Terminal-Chess
+# macOS Terminal Chess
 
 Chess, in a macOS terminal.
