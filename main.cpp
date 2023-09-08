@@ -5,7 +5,7 @@
 
 void slow_print(std::string text) {
     for (char c : text) {
-        usleep(20000); // 1/50th of a second
+        usleep(15000); // 0.015 seconds
         std::cout << c << std::flush;
     }
 }
@@ -33,32 +33,31 @@ int main() {
         }
         std::cout << C_RESET;
         
-        slow_print("SELECT A PIECE (SUCH AS 'A2') TO VIEW ITS MOVEMENT OPTIONS\n > ");
+        slow_print("SELECT A PIECE (SUCH AS 'E2') TO VIEW ITS MOVEMENT OPTIONS\n > ");
         std::string position;
         std::cin >> position;
 
         Coord selected_square = game.input_to_coord(position);
-        
         // check if input is valid
         if (selected_square == NULLCOORD) {
             input_invalid = true;
             continue;
         }
 
-        Piece* selected_piece = game.get_square(selected_square);
-
-        std::unordered_set<Coord> options = selected_piece->possible_moves(game.board, selected_square);
+        // check if selected piece is a valid piece
+        Piece* selected_piece = game.get_piece(selected_square);
+        if (selected_piece == nullptr || selected_piece->color != game.turn) {
+            input_invalid = true;
+            continue;
+        }
+        std::unordered_set<Coord> options = game.get_possible_moves(selected_square);
 
         game.display(selected_square, options);
 
 
-        std::string piece_name = typeid(*selected_piece).name();
-        // remove trailing int and convert to uppercase
-        piece_name = piece_name.substr(1);
-        std::transform(piece_name.begin(), piece_name.end(), piece_name.begin(), ::toupper); 
+        std::string piece_name = selected_piece->get_piece_name();
 
-        std::cout << piece_name;
-        slow_print(" SELECTED");
+        slow_print(piece_name + " SELECTED\n");
         slow_print("ENTER A SQUARE TO MOVE, OR PRESS 'Q' TO QUIT\n > ");
         std::string target;
         std::cin >> target;
@@ -70,5 +69,6 @@ int main() {
             input_invalid = true;
             continue;
         }
+        game.move_piece(selected_square, target_square);
     }
 }

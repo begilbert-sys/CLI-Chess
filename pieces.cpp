@@ -55,8 +55,12 @@ std::unordered_set<Coord> Piece::possible_moves_helper(const Piece* const board[
 }
 
 // King 
-const char* King::get_piece() const {
-    return !color ? "♚" : "♔";
+const char* King::get_symbol() const {
+    return color ? "♚" : "♔";
+}
+
+const std::string King::get_piece_name() const {
+    return "KING";
 }
 
 std::unordered_set<Coord> King::possible_moves(const Piece* const board[8][8], Coord current_square) const {
@@ -80,8 +84,11 @@ std::unordered_set<Coord> King::possible_moves(const Piece* const board[8][8], C
 
 
 // Queen
-const char* Queen::get_piece() const {
-    return !color ? "♛" : "♕";
+const char* Queen::get_symbol() const {
+    return color ? "♛" : "♕";
+}
+const std::string Queen::get_piece_name() const {
+    return "QUEEN";
 }
 
 std::unordered_set<Coord> Queen::possible_moves(const Piece* const board[8][8], Coord current_square) const {
@@ -89,8 +96,11 @@ std::unordered_set<Coord> Queen::possible_moves(const Piece* const board[8][8], 
 }
 
 // Knight 
-const char* Knight::get_piece() const {
-    return !color ? "♞" : "♘";
+const char* Knight::get_symbol() const {
+    return color ? "♞" : "♘";
+}
+const std::string Knight::get_piece_name() const {
+    return "KNIGHT";
 }
 
 std::unordered_set<Coord> Knight::possible_moves(const Piece* const board[8][8], Coord current_square) const {
@@ -99,7 +109,8 @@ std::unordered_set<Coord> Knight::possible_moves(const Piece* const board[8][8],
     int move_list[] = {-2, -1, 1, 2};
     for (int row_offset : move_list) {
         for (int column_offset : move_list) {
-            if (row_offset + column_offset % 2 == 1) { // ensures that there is a -1 or 1 being paired with a -2 or 2
+            if ((row_offset + column_offset) % 2 != 0) { // ensures that there is a -1 or 1 being paired with a -2 or 2
+                std::cout << row_offset << " " << column_offset << std::endl;
                 Coord check_square {current_square.row + row_offset, current_square.column + column_offset};
                 if (coord_in_range(check_square)) {
                     const Piece* check_piece = get_piece_from_coord(board, check_square);
@@ -114,8 +125,11 @@ std::unordered_set<Coord> Knight::possible_moves(const Piece* const board[8][8],
 }
 
 // Bishop
-const char* Bishop::get_piece() const {
-    return !color ? "♝" : "♗";
+const char* Bishop::get_symbol() const {
+    return color ? "♝" : "♗";
+}
+const std::string Bishop::get_piece_name() const {
+    return "BISHOP";
 }
 
 std::unordered_set<Coord> Bishop::possible_moves(const Piece* const board[8][8], Coord current_square) const {
@@ -124,8 +138,11 @@ std::unordered_set<Coord> Bishop::possible_moves(const Piece* const board[8][8],
 
 
 // Rook
-const char* Rook::get_piece() const {
-    return !color ? "♜" : "♖";
+const char* Rook::get_symbol() const {
+    return color ? "♜" : "♖";
+}
+const std::string Rook::get_piece_name() const {
+    return "ROOK";
 }
 
 std::unordered_set<Coord> Rook::possible_moves(const Piece* const board[8][8], Coord current_square) const {
@@ -134,8 +151,11 @@ std::unordered_set<Coord> Rook::possible_moves(const Piece* const board[8][8], C
 
 
 // Pawn
-const char* Pawn::get_piece() const {
-    return !color ? "♟︎" : "♙";
+const char* Pawn::get_symbol() const {
+    return color ? "♟︎" : "♙";
+}
+const std::string Pawn::get_piece_name() const {
+    return "PAWN";
 }
 
 std::unordered_set<Coord> Pawn::possible_moves(const Piece* const board[8][8], Coord current_square) const {

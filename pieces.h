@@ -27,7 +27,8 @@ class Piece {
 public:
     Piece(bool c);
     virtual ~Piece();
-    virtual const char* get_piece() const = 0;
+    virtual const char* get_symbol() const = 0;
+    virtual const std::string get_piece_name() const = 0;
     virtual std::unordered_set<Coord> possible_moves(const Piece* const board[8][8], Coord current_square) const = 0;
     bool color;
 
@@ -41,7 +42,8 @@ protected:
 class King : public Piece {
 public:
     using Piece::Piece;
-    virtual const char* get_piece() const;
+    virtual const char* get_symbol() const;
+    virtual const std::string get_piece_name() const;
     std::unordered_set<Coord> possible_moves(const Piece* const board[8][8], Coord current_square) const;
 };
 
@@ -49,35 +51,40 @@ public:
 class Queen : public Piece {
 public:
     using Piece::Piece;
-    virtual const char* get_piece() const;
+    virtual const char* get_symbol() const;
+    virtual const std::string get_piece_name() const;
     virtual std::unordered_set<Coord> possible_moves(const Piece* const board[8][8], Coord current_square) const;
 };
 
 class Knight : public Piece {
 public:
     using Piece::Piece;
-    virtual const char* get_piece() const;
+    virtual const char* get_symbol() const;
+    virtual const std::string get_piece_name() const;
     virtual std::unordered_set<Coord> possible_moves(const Piece* const board[8][8], Coord current_square) const;
 };
 
 class Bishop : public Piece {
 public:
     using Piece::Piece;
-    virtual const char* get_piece() const;
+    virtual const char* get_symbol() const;
+    virtual const std::string get_piece_name() const;
     virtual std::unordered_set<Coord> possible_moves(const Piece* const board[8][8], Coord current_square) const;
 };
 
 class Rook : public Piece {
 public:
     using Piece::Piece;
-    virtual const char* get_piece() const;
+    virtual const char* get_symbol() const;
+    virtual const std::string get_piece_name() const;
     virtual std::unordered_set<Coord> possible_moves(const Piece* const board[8][8], Coord current_square) const;
 };
 
 class Pawn : public Piece {
 public:
     using Piece::Piece;
-    virtual const char* get_piece() const;
+    virtual const char* get_symbol() const;
+    virtual const std::string get_piece_name() const;
     virtual std::unordered_set<Coord> possible_moves(const Piece* const board[8][8], Coord current_square) const;
 };
 
