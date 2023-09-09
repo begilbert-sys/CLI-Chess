@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include "board.h"
 
 Board::Board() {
@@ -6,6 +7,9 @@ Board::Board() {
     // these variables track whether or not either player is allowed to castle
     white_castle = true;
     black_castle = true;
+
+    white_en_passant = NULLCOORD;
+    black_en_passant = NULLCOORD;
     
     board[0][0] = new Rook(BLACK);
     board[0][1] = new Knight(BLACK);
@@ -20,6 +24,7 @@ Board::Board() {
         board[1][i] = new Pawn(BLACK);
         board[6][i] = new Pawn(WHITE);
     }
+
     board[7][0] = new Rook(WHITE);
     board[7][1] = nullptr;//new Knight(WHITE);
     board[7][2] = nullptr;//new Bishop(WHITE);
@@ -115,9 +120,12 @@ void Board::display() const {
 }
 
 void Board::move_piece(Coord start_square, Coord end_square) {
+
     turn = !turn;
     Piece* start_piece = get_piece(start_square);
     Piece* end_piece = get_piece(end_square);
+    handle_en_passant(start_square, end_square);
+
     bool castled = handle_castling(start_square, end_square);
     if (castled) {
         return;
@@ -128,6 +136,8 @@ void Board::move_piece(Coord start_square, Coord end_square) {
         delete board[end_square.row][end_square.column];
     }
     board[end_square.row][end_square.column] = start_piece;
+    std::cout << white_en_passant.row << " " << white_en_passant.column << std::endl;
+    std::cout << black_en_passant.row << " " << black_en_passant.column << std::endl;
 }
 
 bool Board::handle_castling(Coord start_square, Coord end_square) {
@@ -182,6 +192,37 @@ bool Board::handle_castling(Coord start_square, Coord end_square) {
     return true;
 }
 
+void Board::handle_en_passant(Coord start_square, Coord end_square) {
+
+    if (end_square == white_en_passant) {
+        Piece* captured_pawn = board[end_square.row-1][end_square.column];
+        assert(captured_pawn->get_piece_name() == "PAWN");
+        delete board[end_square.row+1][end_square.column];
+        board[end_square.row+1][end_square.column] = nullptr;
+    } 
+    else if (end_square == black_en_passant) {
+        Piece* captured_pawn = board[end_square.row+1][end_square.column];
+        assert(captured_pawn->get_piece_name() == "PAWN");
+        delete board[end_square.row+1][end_square.column];
+        board[end_square.row+1][end_square.column] = nullptr;
+    }
+
+    white_en_passant = NULLCOORD;
+    black_en_passant = NULLCOORD;
+
+    Piece* start_piece = get_piece(start_square);
+    Piece* end_piece = get_piece(end_square);
+
+    if (start_piece->get_piece_name() == "PAWN" && end_piece == nullptr) {
+        if (start_piece->color == WHITE && (start_square.row - end_square.row == 2)) {
+            white_en_passant = Coord {end_square.row+1, end_square.column};
+        }
+        else if (start_piece->color == BLACK && (end_square.row - start_square.row == 2)) {
+            black_en_passant = Coord {end_square.row-1, end_square.column};
+        }
+    }
+}
+
 std::unordered_set<Coord> Board::get_possible_moves(Coord square) {
     Piece* piece = get_piece(square);
     std::unordered_set<Coord> possible_moves = piece->possible_moves(board, square);
@@ -191,8 +232,10 @@ std::unordered_set<Coord> Board::get_possible_moves(Coord square) {
         possible_moves.insert(c);
     }
 
-    //Coord en_passant = get_en_passant(square);
-    //possible_moves.insert(en_passant);
+    Coord en_passant = get_possible_en_passant(square);
+    if (en_passant != NULLCOORD) {
+        possible_moves.insert(en_passant);
+    }
     return possible_moves;
 }
 
@@ -235,4 +278,27 @@ std::unordered_set<Coord> Board::get_possible_castles(Coord square) {
         possible_moves.insert(right_rook_square);
     }
     return possible_moves;
+}
+
+Coord Board::get_possible_en_passant(Coord square) {
+    Piece* piece = get_piece(square);
+    if (black_en_passant != NULLCOORD && piece->color == WHITE) {
+        Coord top_left = Coord{square.row - 1, square.column - 1};
+        Coord top_right = Coord{square.row - 1, square.column + 1};
+        if (top_left == black_en_passant) {
+            return top_left;
+        } else if (top_right == black_en_passant) {
+            return top_right;
+        }
+    }
+    else if (white_en_passant != NULLCOORD && piece->color == BLACK) {
+        Coord top_left = Coord{square.row + 1, square.column - 1};
+        Coord top_right = Coord{square.row + 1, square.column + 1};
+        if (top_left == white_en_passant) {
+            return top_left;
+        } else if (top_right == white_en_passant) {
+            return top_right;
+        }
+    }
+    return NULLCOORD;
 }

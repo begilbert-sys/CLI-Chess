@@ -24,7 +24,9 @@ private:
     bool white_castle;
     bool black_castle;
     std::unordered_set<Coord> get_possible_castles(Coord square);
+    Coord get_possible_en_passant(Coord square);
     bool handle_castling(Coord start_square, Coord end_square);
+    void handle_en_passant(Coord start_square, Coord end_square);
     Coord white_en_passant;
     Coord black_en_passant;
 
