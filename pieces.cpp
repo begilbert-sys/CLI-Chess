@@ -7,8 +7,10 @@ bool Coord::operator==(const Coord &b) const {
     return (row == b.row) && (column == b.column);
 }
 
+// hash function for Coord
+// gives every Coord a unique value from -1 to 63
 std::size_t std::hash<Coord>::operator()(const Coord c) const {
-        int hash_val = (c.row >> 3) | c.column;
+        int hash_val = (c.row << 3) | c.column;
         return hash<int>()(hash_val);
 }
 
@@ -110,7 +112,6 @@ std::unordered_set<Coord> Knight::possible_moves(const Piece* const board[8][8],
     for (int row_offset : move_list) {
         for (int column_offset : move_list) {
             if ((row_offset + column_offset) % 2 != 0) { // ensures that there is a -1 or 1 being paired with a -2 or 2
-                std::cout << row_offset << " " << column_offset << std::endl;
                 Coord check_square {current_square.row + row_offset, current_square.column + column_offset};
                 if (coord_in_range(check_square)) {
                     const Piece* check_piece = get_piece_from_coord(board, check_square);

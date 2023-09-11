@@ -3,8 +3,6 @@
 
 #include <unordered_set>
 
-class Board; // forward declaration 
-
 const bool BLACK = 1;
 const bool WHITE = 0;
 

@@ -21,7 +21,7 @@ Board::Board() {
     board[0][7] = new Rook(BLACK);
 
     for (int i = 0; i < 8; i++) {
-        board[1][i] = new Pawn(BLACK);
+        board[1][i] = new Pawn(WHITE);
         board[6][i] = new Pawn(WHITE);
     }
 
@@ -74,14 +74,19 @@ Coord Board::input_to_coord(std::string input) { // it's magic!
 
 void Board::display(Coord selected_piece, std::unordered_set<Coord> possible_moves) const {
     std::system("clear");
+
     std::cout << C_BOLD;
     std::cout << "     A   B   C   D   E   F   G   H " << std::endl;
 
+    int row, col;
+
     for (int i = 0; i < 8; i++) {
-        std::cout << 8-i << "  ";
+        row = i;
+        std::cout << 8-row << "  ";
         for (int j = 0; j < 8; j++) {
+            col = j;
             bool option = false;
-            Coord square = Coord {i, j};
+            Coord square = Coord {row, col};
             Piece* p = get_piece(square);
             if (possible_moves.find(square) != possible_moves.end()) {
                 option = true;
@@ -136,8 +141,6 @@ void Board::move_piece(Coord start_square, Coord end_square) {
         delete board[end_square.row][end_square.column];
     }
     board[end_square.row][end_square.column] = start_piece;
-    std::cout << white_en_passant.row << " " << white_en_passant.column << std::endl;
-    std::cout << black_en_passant.row << " " << black_en_passant.column << std::endl;
 }
 
 bool Board::handle_castling(Coord start_square, Coord end_square) {
@@ -165,7 +168,6 @@ bool Board::handle_castling(Coord start_square, Coord end_square) {
     Piece* rook;
     Piece* king;
     if (start_square == left_rook_square || start_square == right_rook_square) {
-        std::cout << "changing!" << std::endl;
         rook = start_piece;
         king = end_piece;
     } else {
@@ -181,14 +183,11 @@ bool Board::handle_castling(Coord start_square, Coord end_square) {
         board[row][0] = nullptr;
         board[row][4] = nullptr;
     } else {
-        std::cout << start_piece->get_piece_name() << std::endl;
-        std::cout << end_piece->get_piece_name() << std::endl;
         board[row][5] = rook;
         board[row][6] = king;
         board[row][4] = nullptr;
         board[row][7] = nullptr;
     }
-    std::cout << "success!" << std::endl;
     return true;
 }
 
@@ -223,6 +222,12 @@ void Board::handle_en_passant(Coord start_square, Coord end_square) {
     }
 }
 
+bool Board::get_possible_promo(Coord end_square) {
+    Piece* piece = get_piece(end_square);
+    // if a pawn has reached the end row
+    return (piece->get_piece_name() == "PAWN" && end_square.row == (piece->color ? 7 : 0));
+}
+
 std::unordered_set<Coord> Board::get_possible_moves(Coord square) {
     Piece* piece = get_piece(square);
     std::unordered_set<Coord> possible_moves = piece->possible_moves(board, square);
@@ -235,6 +240,25 @@ std::unordered_set<Coord> Board::get_possible_moves(Coord square) {
     Coord en_passant = get_possible_en_passant(square);
     if (en_passant != NULLCOORD) {
         possible_moves.insert(en_passant);
+    }
+
+    // if the piece is a King, any moves that result in the King 
+    // being captured are removed from the possible moves set
+    if (piece->get_piece_name() == "KING") {
+        std::unordered_set<Coord> barred_squares;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                Piece* potential_enemy = board[i][j];
+                if (potential_enemy != nullptr && potential_enemy->color != piece->color) {
+                    barred_squares = potential_enemy->possible_moves(board, Coord {i, j});
+                    for (Coord c : barred_squares) {
+                        if (possible_moves.count(c) == 1) {
+                            possible_moves.erase(c);
+                        }
+                    }
+                }
+            }
+        }
     }
     return possible_moves;
 }
@@ -301,4 +325,27 @@ Coord Board::get_possible_en_passant(Coord square) {
         }
     }
     return NULLCOORD;
+}
+
+bool Board::promote_pawn(Coord square, std::string promo_piece) {
+    Piece* piece = get_piece(square);
+    bool color = piece->color;
+    assert(piece->get_piece_name() == "PAWN");
+    delete board[square.row][square.column];
+    if (promo_piece == "QUEEN") {
+        board[square.row][square.column] = new Queen(color);
+    }
+    else if (promo_piece == "BISHOP") {
+        board[square.row][square.column] = new Bishop(color);
+    }
+    else if (promo_piece == "KNIGHT") {
+        board[square.row][square.column] = new Knight(color);
+    }
+    else if (promo_piece == "ROOK") {
+        board[square.row][square.column] = new Rook(color);
+    }
+    else {
+        return false;
+    }
+    return true;
 }
