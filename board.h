@@ -12,30 +12,41 @@ public:
     ~Board();
     void display() const;
     void display(Coord selected_piece, std::unordered_set<Coord> possible_moves) const;
-    std::unordered_set<Coord> get_possible_moves(Coord square);
     static Coord input_to_coord(std::string input);
+
+    std::unordered_set<Coord> get_possible_moves(Coord square) const;
+
+
     Piece* get_piece(Coord coord) const;
     void move_piece(Coord start_square, Coord end_square);
-    bool get_possible_promo(Coord end_square);
+
+    bool pawn_promoted(Coord end_square) const; // returns true if a promotion is possible
     bool promote_pawn(Coord square, std::string promo_piece);
+    
+    bool king_in_check(Color color) const;
+
 
     Piece* board[8][8];
-    bool turn;
+    Color turn;
 
 private:
     bool white_castle;
     bool black_castle;
-    std::unordered_set<Coord> get_possible_castles(Coord square);
+    void adjust_for_castles(std::unordered_set<Coord> &possible_moves, Coord square) const;
     bool handle_castling(Coord start_square, Coord end_square);
 
     Coord white_en_passant;
     Coord black_en_passant;
-    Coord get_possible_en_passant(Coord square);
+    void adjust_for_en_passant(std::unordered_set<Coord> &possible_moves, Coord square) const; // returns the coord of the en passant 
     void handle_en_passant(Coord start_square, Coord end_square);
 
+    void adjust_possible_king_moves(std::unordered_set<Coord> &possible_moves, Coord square) const;
 
-    std::unordered_set<Coord> get_possible_check_moves;
 
+
+    std::unordered_set<Coord> get_piece_coords(Color color) const;
+    Coord get_king(Color color) const;
+    
 };
 
 #endif

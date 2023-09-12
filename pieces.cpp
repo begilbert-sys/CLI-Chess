@@ -15,14 +15,14 @@ std::size_t std::hash<Coord>::operator()(const Coord c) const {
 }
 
 // Piece
-Piece::Piece(bool color) : color(color) {};
+Piece::Piece(Color color) : color(color) {};
 
 Piece::~Piece() = default;
 
 bool Piece::coord_in_range(Coord coord) const {
     return (coord.row >= 0 && coord.row < 8 && coord.column >= 0 && coord.column < 8);
 }
-const Piece* Piece::get_piece_from_coord(const Piece* const board[8][8], Coord square) const {
+const Piece* Piece::get_piece_from_coord(const Piece* const board[8][8], Coord square) {
     return board[square.row][square.column];
 }
 

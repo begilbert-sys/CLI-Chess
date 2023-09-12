@@ -15,6 +15,10 @@ int main() {
     while (true) {
         game.display();
 
+        if (game.king_in_check(game.turn)) {
+            slow_print("YOUR KING IS IN CHECK\n");
+        }
+
         // print this on reset if you screwed up the input
         if (input_invalid) {
             slow_print("INPUT INVALID, TRY AGAIN\n");
@@ -76,7 +80,7 @@ int main() {
             game.move_piece(selected_square, target_square);
             break;
         }
-        if (game.get_possible_promo(target_square)) {
+        if (game.pawn_promoted(target_square)) {
             while (true) {
                 game.display();
                 if (input_invalid) {
@@ -84,8 +88,7 @@ int main() {
                     input_invalid = false;
                 }
                 slow_print("YOUR PAWN MAY BE PROMOTED. SELECT A PIECE\n");
-                slow_print("QUEEN / BISHOP / KNIGHT / ROOK \n");
-                slow_print(" > ");
+                slow_print("QUEEN / BISHOP / KNIGHT / ROOK \n > ");
                 std::string promo;
                 std::cin >> promo;
                 bool input_success = game.promote_pawn(target_square, promo);

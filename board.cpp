@@ -21,17 +21,17 @@ Board::Board() {
     board[0][7] = new Rook(BLACK);
 
     for (int i = 0; i < 8; i++) {
-        board[1][i] = new Pawn(WHITE);
+        board[1][i] = new Pawn(BLACK);
         board[6][i] = new Pawn(WHITE);
     }
 
     board[7][0] = new Rook(WHITE);
-    board[7][1] = nullptr;//new Knight(WHITE);
-    board[7][2] = nullptr;//new Bishop(WHITE);
-    board[7][3] = nullptr;//new Queen(WHITE);
+    board[7][1] = new Knight(WHITE);
+    board[7][2] = new Bishop(WHITE);
+    board[7][3] = new Queen(WHITE);
     board[7][4] = new King(WHITE);
-    board[7][5] = nullptr;//new Bishop(WHITE);
-    board[7][6] = nullptr;//new Knight(WHITE);
+    board[7][5] = new Bishop(WHITE);
+    board[7][6] = new Knight(WHITE);
     board[7][7] = new Rook(WHITE);
 
     for (int i = 2; i < 6; i++) {
@@ -55,7 +55,7 @@ Piece* Board::get_piece(Coord coord) const {
 
 Coord Board::input_to_coord(std::string input) { // it's magic!
     char rowchar = input[1];
-    char colchar = input[0];
+    char colchar = toupper(input[0]);
 
     const char first_row = '8';
     const char first_col = 'A';
@@ -68,8 +68,12 @@ Coord Board::input_to_coord(std::string input) { // it's magic!
         return NULLCOORD;
     }
     int row = first_row - rowchar;
-    int column = toupper(colchar) - first_col;
+    int column = colchar - first_col;
     return Coord {row, column};
+}
+
+void Board::display() const {
+    display(NULLCOORD, {});
 }
 
 void Board::display(Coord selected_piece, std::unordered_set<Coord> possible_moves) const {
@@ -120,26 +124,60 @@ void Board::display(Coord selected_piece, std::unordered_set<Coord> possible_mov
     std::cout << C_RESET << std::endl;
 }
 
-void Board::display() const {
-    display(NULLCOORD, {});
+std::unordered_set<Coord> Board::get_possible_moves(Coord square) const {
+    Piece* piece = get_piece(square);
+    std::unordered_set<Coord> possible_moves = piece->possible_moves(board, square);
+
+    adjust_for_castles(possible_moves, square);
+
+    adjust_for_en_passant(possible_moves, square);
+
+    adjust_possible_king_moves(possible_moves, square);
+
+    return possible_moves;
 }
+
+void Board::adjust_possible_king_moves(std::unordered_set<Coord> &possible_moves, Coord square) const {
+    // if the piece is a King, any moves that result in the King 
+    // being captured are removed from the possible moves set
+    Piece* piece = get_piece(square);
+    if (piece->get_piece_name() == "KING") {
+        std::unordered_set<Coord> barred_squares;
+        std::unordered_set<Coord> enemy_squares = get_piece_coords(piece->color ? WHITE : BLACK);
+        for (Coord enemy_coord : enemy_squares) {
+            Piece* enemy = get_piece(enemy_coord);
+            barred_squares = enemy->possible_moves(board, enemy_coord);
+            for (Coord c : barred_squares) {
+                if (possible_moves.count(c) == 1) {
+                    possible_moves.erase(c);
+                }
+            }
+        }
+    }
+}
+
+
+
 
 void Board::move_piece(Coord start_square, Coord end_square) {
 
-    turn = !turn;
+    turn = turn ? WHITE : BLACK;
     Piece* start_piece = get_piece(start_square);
     Piece* end_piece = get_piece(end_square);
     handle_en_passant(start_square, end_square);
 
+    
     bool castled = handle_castling(start_square, end_square);
     if (castled) {
         return;
     }
 
     board[start_square.row][start_square.column] = nullptr;
+
     if (end_piece != nullptr) {
         delete board[end_square.row][end_square.column];
     }
+
     board[end_square.row][end_square.column] = start_piece;
 }
 
@@ -174,6 +212,7 @@ bool Board::handle_castling(Coord start_square, Coord end_square) {
         rook = end_piece;
         king = start_piece;
     }
+
 
 
     if ((start_square == left_rook_square && end_square == king_square) 
@@ -222,53 +261,17 @@ void Board::handle_en_passant(Coord start_square, Coord end_square) {
     }
 }
 
-bool Board::get_possible_promo(Coord end_square) {
+bool Board::pawn_promoted(Coord end_square) const {
     Piece* piece = get_piece(end_square);
     // if a pawn has reached the end row
-    return (piece->get_piece_name() == "PAWN" && end_square.row == (piece->color ? 7 : 0));
+    return (piece != nullptr && piece->get_piece_name() == "PAWN" && end_square.row == (piece->color ? 7 : 0));
 }
 
-std::unordered_set<Coord> Board::get_possible_moves(Coord square) {
-    Piece* piece = get_piece(square);
-    std::unordered_set<Coord> possible_moves = piece->possible_moves(board, square);
-
-    std::unordered_set<Coord> possible_castles = get_possible_castles(square);
-    for (Coord c : possible_castles) {
-        possible_moves.insert(c);
-    }
-
-    Coord en_passant = get_possible_en_passant(square);
-    if (en_passant != NULLCOORD) {
-        possible_moves.insert(en_passant);
-    }
-
-    // if the piece is a King, any moves that result in the King 
-    // being captured are removed from the possible moves set
-    if (piece->get_piece_name() == "KING") {
-        std::unordered_set<Coord> barred_squares;
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                Piece* potential_enemy = board[i][j];
-                if (potential_enemy != nullptr && potential_enemy->color != piece->color) {
-                    barred_squares = potential_enemy->possible_moves(board, Coord {i, j});
-                    for (Coord c : barred_squares) {
-                        if (possible_moves.count(c) == 1) {
-                            possible_moves.erase(c);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return possible_moves;
-}
-
-std::unordered_set<Coord> Board::get_possible_castles(Coord square) {
-    std::unordered_set<Coord> possible_moves;
+void Board::adjust_for_castles(std::unordered_set<Coord> &possible_moves, Coord square) const {
     Piece* piece = get_piece(square);
     if (!(((piece->color == WHITE && white_castle) || (piece->color == BLACK && black_castle)) &&
     (piece->get_piece_name() == "ROOK" || piece->get_piece_name() == "KING")))  {
-        return possible_moves;
+        return;
     }
 
     int row = piece->color ? 0 : 7; // row is 0 if BLACK, 7 if WHITE
@@ -292,8 +295,7 @@ std::unordered_set<Coord> Board::get_possible_castles(Coord square) {
 
     if ((square == left_rook_square && left_side_clear) ||
         (square == right_rook_square && right_side_clear)) { 
-        possible_moves.insert(king_square); // Add King's position 
-        return possible_moves;
+        possible_moves.insert(king_square); // Add King's position
     }
     if (square == king_square && left_side_clear) {
         possible_moves.insert(left_rook_square);
@@ -301,35 +303,33 @@ std::unordered_set<Coord> Board::get_possible_castles(Coord square) {
     if (square == king_square && right_side_clear) {
         possible_moves.insert(right_rook_square);
     }
-    return possible_moves;
 }
 
-Coord Board::get_possible_en_passant(Coord square) {
+void Board::adjust_for_en_passant(std::unordered_set<Coord> &possible_moves, Coord square) const {
     Piece* piece = get_piece(square);
     if (black_en_passant != NULLCOORD && piece->color == WHITE) {
         Coord top_left = Coord{square.row - 1, square.column - 1};
         Coord top_right = Coord{square.row - 1, square.column + 1};
         if (top_left == black_en_passant) {
-            return top_left;
+            possible_moves.insert(top_left);
         } else if (top_right == black_en_passant) {
-            return top_right;
+            possible_moves.insert(top_right);
         }
     }
     else if (white_en_passant != NULLCOORD && piece->color == BLACK) {
         Coord top_left = Coord{square.row + 1, square.column - 1};
         Coord top_right = Coord{square.row + 1, square.column + 1};
         if (top_left == white_en_passant) {
-            return top_left;
+            possible_moves.insert(top_left);
         } else if (top_right == white_en_passant) {
-            return top_right;
+            possible_moves.insert(top_right);
         }
     }
-    return NULLCOORD;
 }
 
 bool Board::promote_pawn(Coord square, std::string promo_piece) {
     Piece* piece = get_piece(square);
-    bool color = piece->color;
+    Color color = piece->color;
     assert(piece->get_piece_name() == "PAWN");
     delete board[square.row][square.column];
     if (promo_piece == "QUEEN") {
@@ -348,4 +348,42 @@ bool Board::promote_pawn(Coord square, std::string promo_piece) {
         return false;
     }
     return true;
+}
+
+std::unordered_set<Coord> Board::get_piece_coords(Color color) const {
+    std::unordered_set<Coord> pieces;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Piece* piece = board[i][j];
+            if (piece != nullptr && piece->color == color) {
+                pieces.insert(Coord{i, j});
+            }
+        }
+    }
+    return pieces;
+}
+
+Coord Board::get_king(Color color) const {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Piece* piece = board[i][j];
+            if (piece != nullptr && piece->get_piece_name() == "KING" && piece->color == color) {
+                return Coord{i, j};
+            }
+        }
+    }
+    throw std::runtime_error("King is missing");
+}
+
+bool Board::king_in_check(Color color) const {
+    Coord king_coord = get_king(color);
+    std::unordered_set<Coord> enemy_pieces = get_piece_coords(color ? WHITE : BLACK);
+    for (Coord coord : enemy_pieces) {
+        Piece* enemy_piece = get_piece(coord);
+        std::unordered_set<Coord> possible_enemy_moves = enemy_piece->possible_moves(board, coord);
+        if (possible_enemy_moves.count(king_coord) == 1) {
+            return true;
+        }
+    }
+    return false;
 }

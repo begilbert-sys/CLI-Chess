@@ -3,8 +3,7 @@
 
 #include <unordered_set>
 
-const bool BLACK = 1;
-const bool WHITE = 0;
+enum Color {WHITE, BLACK};
 
 // Coord
 struct Coord {
@@ -23,16 +22,16 @@ const Coord NULLCOORD {-1, -1};
 
 class Piece {
 public:
-    Piece(bool c);
+    Piece(Color c);
     virtual ~Piece();
     virtual const char* get_symbol() const = 0;
     virtual const std::string get_piece_name() const = 0;
     virtual std::unordered_set<Coord> possible_moves(const Piece* const board[8][8], Coord current_square) const = 0;
-    bool color;
+    Color color;
 
 protected:
     bool coord_in_range(Coord coord) const;
-    const Piece* get_piece_from_coord(const Piece* const board[8][8], Coord square) const;
+    static const Piece* get_piece_from_coord(const Piece* const board[8][8], Coord square);
     std::unordered_set<Coord> possible_moves_helper(const Piece* const board[8][8], Coord current_square, bool cross_check, bool diagonal_check) const;
 };
 
