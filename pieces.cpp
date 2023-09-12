@@ -1,6 +1,5 @@
 #include "pieces.h"
 #include "board.h"
-#include <iostream>
 
 // Coord
 bool Coord::operator==(const Coord &b) const {

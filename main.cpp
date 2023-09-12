@@ -2,6 +2,11 @@
 #include <unistd.h>
 #include "board.h"
 
+
+/* KNOWN BUGS:
+* King can remain in check when moving away from the attacking piece
+*/
+
 void slow_print(std::string text) {
     for (char c : text) {
         usleep(15000); // 0.015 seconds
@@ -48,15 +53,14 @@ int main() {
         }
 
         // check if selected piece is a valid piece
-        Piece* selected_piece = game.get_piece(selected_square);
-        if (selected_piece == nullptr || selected_piece->color != game.turn) {
+        if (!game.valid_square(selected_square)) {
             input_invalid = true;
             continue;
         }
         std::unordered_set<Coord> options = game.get_possible_moves(selected_square);
 
 
-        std::string piece_name = selected_piece->get_piece_name();
+        std::string piece_name = game.get_square_name(selected_square);
         Coord target_square;
         while (true) {
             game.display(selected_square, options);

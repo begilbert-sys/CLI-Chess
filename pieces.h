@@ -2,6 +2,7 @@
 #define PIECES
 
 #include <unordered_set>
+#include <iostream>
 
 enum Color {WHITE, BLACK};
 
