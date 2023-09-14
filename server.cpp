@@ -5,7 +5,7 @@
 
 #include "nw_consts.h"
 
-int server() {
+int main() {
     int serv_socket = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in serv_address;

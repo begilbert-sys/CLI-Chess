@@ -13,8 +13,8 @@ class Board : public Board_Manager {
 public:
     using Board_Manager::Board_Manager;
 
-    void display() const;
-    void display(Coord selected_piece, std::unordered_set<Coord> possible_moves) const;
+    void display(Color side) const;
+    void display(Color side, Coord selected_piece, std::unordered_set<Coord> possible_moves) const;
     static Coord input_to_coord(std::string input);
 
     bool valid_square(Coord square) const;

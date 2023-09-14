@@ -20,23 +20,27 @@ Coord Board::input_to_coord(std::string input) { // it's magic!
     return Coord {row, column};
 }
 
-void Board::display() const {
-    display(NULLCOORD, {});
+void Board::display(Color side) const {
+    display(side, NULLCOORD, {});
 }
 
-void Board::display(Coord selected_piece, std::unordered_set<Coord> possible_moves) const {
+void Board::display(Color side, Coord selected_piece, std::unordered_set<Coord> possible_moves) const {
     std::system("clear");
 
     std::cout << C_BOLD;
-    std::cout << "     A   B   C   D   E   F   G   H " << std::endl;
+    if (side == WHITE) {
+        std::cout << "     A   B   C   D   E   F   G   H " << std::endl;
+    } else if (side == BLACK) {
+        std::cout << "     H   G   F   E   D   C   B   A " << std::endl;
+    }
 
     int row, col;
 
     for (int i = 0; i < 8; i++) {
-        row = i;
+        row = side ? 7-i : i;
         std::cout << 8-row << "  ";
         for (int j = 0; j < 8; j++) {
-            col = j;
+            col = side ? 7-j : j;
             bool option = false;
             Coord square = Coord {row, col};
             Piece* p = get_piece(square);

@@ -2,9 +2,9 @@
 
 int local_game() {
     Board game;
-    bool input_invalid;
+    bool input_invalid = false;
     while (true) {
-        game.display();
+        game.display(WHITE);
 
         if (game.king_in_check(game.turn)) {
             slow_print("YOUR KING IS IN CHECK\n");
@@ -49,7 +49,7 @@ int local_game() {
         std::string piece_name = game.get_square_name(selected_square);
         Coord target_square;
         while (true) {
-            game.display(selected_square, options);
+            game.display(WHITE,selected_square, options);
             if (input_invalid) {
                 slow_print("INPUT INVALID, TRY AGAIN\n");
                 input_invalid = false;
@@ -72,7 +72,7 @@ int local_game() {
         }
         if (game.pawn_promoted(target_square)) {
             while (true) {
-                game.display();
+                game.display(WHITE);
                 if (input_invalid) {
                     slow_print("INPUT INVALID, TRY AGAIN\n");
                     input_invalid = false;
