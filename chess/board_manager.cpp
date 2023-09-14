@@ -19,8 +19,8 @@ Board_Manager::Board_Manager() {
     board[0][7] = new Rook(BLACK);
 
     for (int i = 0; i < 8; i++) {
-        board[1][i] = nullptr;//new Pawn(BLACK);
-        board[6][i] = nullptr;//new Pawn(WHITE);
+        board[1][i] = new Pawn(BLACK);
+        board[6][i] = new Pawn(WHITE);
     }
 
     board[7][0] = new Rook(WHITE);
